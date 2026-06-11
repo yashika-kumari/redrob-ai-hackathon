@@ -1,0 +1,27 @@
+{
+    "mappings": {
+        "data science": [
+            "machine learning",
+            "ml",
+            "deep learning",
+            "ai engineer",
+            "natural language processing"
+        ],
+        "frontend": [
+            "react.js",
+            "reactjs",
+            "next.js",
+            "nextjs",
+            "tailwind css",
+            "javascript"
+        ],
+        "backend": [
+            "fastapi",
+            "django",
+            "flask",
+            "nodejs",
+            "express",
+            "python"
+        ]
+    }
+}
