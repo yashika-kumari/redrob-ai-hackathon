@@ -20,6 +20,8 @@ from fastapi.middleware.cors import CORSMiddleware
 # pyrefly: ignore [missing-import]
 from fastapi.responses import JSONResponse
 
+from app.services.embedder import index_manager
+
 from app.schemas import (
     JobDescriptionRequest,
     RankedResultsResponse,
@@ -47,9 +49,15 @@ async def lifespan(app: FastAPI) -> AsyncGenerator[None, None]:  # noqa: D401
     Phase 3 will load the FAISS index and sentence-transformer model here.
     """
     logger.info("🚀 Redrob AI Engine starting up …")
-    # TODO (Phase 3): load SentenceTransformer + FAISS index into app.state
+    # Phase 3: load/create FAISS index and wire into app state
+    index_manager.load_or_create()
+    app.state.index_manager = index_manager
+    logger.info("FAISS index ready — %d candidates indexed.", index_manager.total_candidates)
     yield
-    logger.info("🛑 Redrob AI Engine shutting down …")
+    # Persist index to disk on clean shutdown
+    await index_manager.save()
+    logger.info("🛑 FAISS index saved. Redrob AI Engine shutting down …")
+
 
 
 # ---------------------------------------------------------------------------
