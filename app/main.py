@@ -21,6 +21,7 @@ from fastapi.middleware.cors import CORSMiddleware
 from fastapi.responses import JSONResponse
 
 from app.services.embedder import index_manager
+from app.routers import candidates as candidates_router
 
 from app.schemas import (
     JobDescriptionRequest,
@@ -90,6 +91,12 @@ app.add_middleware(
     allow_headers=["Content-Type", "Authorization"],
 )
 
+# ---------------------------------------------------------------------------
+# Routers
+# ---------------------------------------------------------------------------
+
+app.include_router(candidates_router.router)
+
 
 # ---------------------------------------------------------------------------
 # Global exception handlers
@@ -127,32 +134,3 @@ async def health_check() -> dict[str, str]:
     return {"status": "ok", "engine": "Redrob AI Engine v0.1.0"}
 
 
-# ---------------------------------------------------------------------------
-# Placeholder match endpoint (wired up fully in Phase 3 / 4)
-# ---------------------------------------------------------------------------
-
-@app.post(
-    "/match",
-    response_model=RankedResultsResponse,
-    tags=["Candidate Discovery"],
-    summary="Rank candidates against a job description using vector similarity.",
-)
-async def match_candidates(payload: JobDescriptionRequest) -> RankedResultsResponse:
-    """
-    Accepts a job description and returns the top-K ranked candidates
-    by cosine similarity against their resume embeddings.
-
-    Full embedding + FAISS logic is injected in Phase 3.
-    """
-    # Guard: FAISS index must be loaded (Phase 3 populates app.state)
-    if not hasattr(app.state, "faiss_index"):
-        raise HTTPException(
-            status_code=status.HTTP_503_SERVICE_UNAVAILABLE,
-            detail="Vector index not yet initialised. Upload resumes first via /ingest.",
-        )
-
-    # Phase 3/4 will replace this stub
-    raise HTTPException(
-        status_code=status.HTTP_501_NOT_IMPLEMENTED,
-        detail="Matching engine not yet implemented — coming in Phase 3.",
-    )
