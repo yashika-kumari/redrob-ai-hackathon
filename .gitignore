@@ -11,3 +11,10 @@ __pycache__/
 # Ignore IDE specific items
 .vscode/
 .idea/
+
+# Ignore local challenge data and scratch scripts
+data/
+scratch/
+
+# Ignore personal submission metadata
+submission_metadata.yaml

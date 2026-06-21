@@ -1,7 +1,7 @@
 """
 app/main.py
 
-Async FastAPI application entry-point for the Redrob AI Engine.
+Async FastAPI application entry-point for the IR-Data-Matching-Engine.
 Handles application lifecycle, global exception middleware, and
 route registration.
 """
@@ -15,10 +15,8 @@ from typing import AsyncGenerator
 
 # pyrefly: ignore [missing-import]
 from fastapi import FastAPI, HTTPException, Request, status
-# pyrefly: ignore [missing-import]
 from fastapi.middleware.cors import CORSMiddleware
-# pyrefly: ignore [missing-import]
-from fastapi.responses import JSONResponse
+from fastapi.responses import JSONResponse, RedirectResponse
 
 from app.services.embedder import index_manager
 from app.routers import candidates as candidates_router
@@ -36,7 +34,7 @@ logging.basicConfig(
     level=logging.INFO,
     format="%(asctime)s | %(levelname)-8s | %(name)s | %(message)s",
 )
-logger = logging.getLogger("redrob.main")
+logger = logging.getLogger("ir_data_matching_engine.main")
 
 
 # ---------------------------------------------------------------------------
@@ -49,7 +47,7 @@ async def lifespan(app: FastAPI) -> AsyncGenerator[None, None]:  # noqa: D401
     FastAPI lifespan context manager.
     Phase 3 will load the FAISS index and sentence-transformer model here.
     """
-    logger.info("🚀 Redrob AI Engine starting up …")
+    logger.info("🚀 IR-Data-Matching-Engine starting up …")
     # Phase 3: load/create FAISS index and wire into app state
     index_manager.load_or_create()
     app.state.index_manager = index_manager
@@ -57,7 +55,7 @@ async def lifespan(app: FastAPI) -> AsyncGenerator[None, None]:  # noqa: D401
     yield
     # Persist index to disk on clean shutdown
     await index_manager.save()
-    logger.info("🛑 FAISS index saved. Redrob AI Engine shutting down …")
+    logger.info("🛑 FAISS index saved. IR-Data-Matching-Engine shutting down …")
 
 
 
@@ -66,7 +64,7 @@ async def lifespan(app: FastAPI) -> AsyncGenerator[None, None]:  # noqa: D401
 # ---------------------------------------------------------------------------
 
 app = FastAPI(
-    title="Redrob AI Engine",
+    title="IR-Data-Matching-Engine",
     description=(
         "Intelligent Candidate Discovery using dense vector embeddings "
         "and parallel Cosine Similarity matching — Track 1, Redrob Hackathon."
@@ -96,6 +94,19 @@ app.add_middleware(
 # ---------------------------------------------------------------------------
 
 app.include_router(candidates_router.router)
+
+
+
+
+# ---------------------------------------------------------------------------
+# Root redirect
+# ---------------------------------------------------------------------------
+
+@app.get("/", include_in_schema=False)
+async def root() -> RedirectResponse:
+    """Redirect root traffic cleanly to the health check endpoint."""
+    return RedirectResponse(url="/health")
+
 
 
 # ---------------------------------------------------------------------------
@@ -131,6 +142,6 @@ async def unhandled_exception_handler(request: Request, exc: Exception) -> JSONR
 @app.get("/health", tags=["System"])
 async def health_check() -> dict[str, str]:
     """Liveness probe — returns 200 OK when the engine is running."""
-    return {"status": "ok", "engine": "Redrob AI Engine v0.1.0"}
+    return {"status": "ok", "engine": "IR-Data-Matching-Engine v0.1.0"}
 
 

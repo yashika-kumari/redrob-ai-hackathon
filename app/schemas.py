@@ -2,7 +2,7 @@
 app/schemas.py
 
 Pydantic v2 data schemas — the single source of truth for all
-request/response validation contracts in the Redrob AI Engine.
+request/response validation contracts in the IR-Data-Matching-Engine.
 """
 
 from pydantic import BaseModel, Field, field_validator

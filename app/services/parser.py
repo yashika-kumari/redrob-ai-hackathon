@@ -26,7 +26,7 @@ import PyPDF2
 from docx import Document as DocxDocument
 from fastapi import HTTPException, status
 
-logger = logging.getLogger("redrob.parser")
+logger = logging.getLogger("ir_data_matching_engine.parser")
 
 # ---------------------------------------------------------------------------
 # Constants
@@ -201,11 +201,26 @@ def _extract_docx_sync(file_bytes: bytes) -> str:
     return "\n".join(paragraphs)
 
 
+def _extract_name_from_raw_text(raw_text: str) -> str | None:
+    """
+    Attempt to extract the candidate's name from the first non-empty lines
+    of the raw (un-normalised) text.
+    """
+    lines = [line.strip() for line in raw_text.splitlines() if line.strip()]
+    for line in lines[:5]:
+        words = line.split()
+        if 1 <= len(words) <= 4 and not any(c in line for c in "@:/.\\,+=#_*()[]{}0123456789"):
+            lower_line = line.lower()
+            if not any(w in lower_line for w in ("resume", "cv", "curriculum", "page", "profile", "summary", "contact", "education", "experience")):
+                return line
+    return None
+
+
 # ---------------------------------------------------------------------------
 # Public async interface
 # ---------------------------------------------------------------------------
 
-async def secure_extract_pdf_text(file_bytes: bytes, filename: str) -> str:
+async def secure_extract_pdf_text(file_bytes: bytes, filename: str) -> tuple[str, str | None]:
     """
     Thread-safe asynchronous entry-point for secure resume text extraction.
 
@@ -219,9 +234,8 @@ async def secure_extract_pdf_text(file_bytes: bytes, filename: str) -> str:
 
     Returns
     -------
-    str
-        Normalised, lowercased, injection-stripped plain-text content
-        ready for embedding by the sentence-transformer pipeline.
+    tuple[str, str | None]
+        Normalised text content and auto-extracted candidate name (if found).
 
     Raises
     ------
@@ -258,6 +272,9 @@ async def secure_extract_pdf_text(file_bytes: bytes, filename: str) -> str:
             detail=f"Unsupported file type: {suffix}",
         )
 
+    # Extract name from raw text before normalising
+    candidate_name = _extract_name_from_raw_text(raw_text)
+
     # ── 4. Normalise / strip injection vectors ───────────────────────────────
     normalised = _normalise_text(raw_text)
 
@@ -268,6 +285,8 @@ async def secure_extract_pdf_text(file_bytes: bytes, filename: str) -> str:
         )
 
     logger.info(
-        "Successfully extracted %d characters from '%s'", len(normalised), safe_name
+        "Successfully extracted %d characters from '%s' (name: %s)",
+        len(normalised), safe_name, candidate_name
     )
-    return normalised
+    return normalised, candidate_name
+

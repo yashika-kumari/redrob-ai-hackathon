@@ -26,13 +26,13 @@ import faiss
 import numpy as np
 from sentence_transformers import SentenceTransformer
 
-logger = logging.getLogger("redrob.embedder")
+logger = logging.getLogger("ir_data_matching_engine.embedder")
 
 # ---------------------------------------------------------------------------
 # Constants
 # ---------------------------------------------------------------------------
 
-MODEL_NAME: str = "all-MiniLM-L6-v2"
+MODEL_NAME: str = "model/all-MiniLM-L6-v2"
 EMBEDDING_DIM: int = 384                  # fixed for all-MiniLM-L6-v2
 
 CHUNK_SIZE: int = 500                     # characters per chunk

@@ -35,7 +35,7 @@ from app.schemas import (
 from app.services.embedder import index_manager
 from app.services.parser import secure_extract_pdf_text
 
-logger = logging.getLogger("redrob.router.candidates")
+logger = logging.getLogger("ir_data_matching_engine.router.candidates")
 
 # ---------------------------------------------------------------------------
 # Router definition
@@ -70,10 +70,6 @@ _ALLOWED_CONTENT_TYPES: frozenset[str] = frozenset(
 async def ingest_resume(
     request: Request,
     file: Annotated[UploadFile, File(description="Resume file — .pdf or .docx only.")],
-    candidate_name: Annotated[
-        str | None,
-        Form(description="Optional display name for the candidate."),
-    ] = None,
 ) -> dict:
     """
     Pipeline:
@@ -127,8 +123,8 @@ async def ingest_resume(
             detail="The uploaded file is empty.",
         )
 
-    # ── Secure extraction (parser layer handles sanitisation + normalisation) ─
-    normalised_text: str = await secure_extract_pdf_text(
+    # ── Secure extraction + auto name detection ───────────────────────────────
+    normalised_text, candidate_name = await secure_extract_pdf_text(
         file_bytes=file_bytes,
         filename=filename,
     )
@@ -158,19 +154,19 @@ async def ingest_resume(
         # Non-fatal — log but don't fail the request (index is in memory)
         logger.warning("FAISS disk persist failed (index still in memory): %s", exc)
 
+    display_name = candidate_name or PurePosixPath(filename).stem
+
     logger.info(
-        "Ingested candidate '%s' from file '%s' — %d chars extracted. "
-        "Total indexed: %d",
-        candidate_id,
-        filename,
-        len(normalised_text),
-        index_manager.total_candidates,
+        "Ingested '%s' ('%s') from '%s' — %d chars. Total indexed: %d",
+        candidate_id, display_name, filename,
+        len(normalised_text), index_manager.total_candidates,
     )
 
     return {
         "status": "success",
         "candidate_id": candidate_id,
-        "display_name": candidate_name or PurePosixPath(filename).stem,
+        "display_name": display_name,
+        "name_auto_extracted": bool(candidate_name),
         "filename": filename,
         "characters_extracted": len(normalised_text),
         "total_candidates_indexed": index_manager.total_candidates,
