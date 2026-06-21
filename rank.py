@@ -212,10 +212,6 @@ def main():
     print(f"Reading candidates from {args.candidates} and applying fast filters...")
     candidates = []
     
-    disallowed_current_titles = {
-        "marketing manager", "accountant", "hr manager", "civil engineer", 
-        "graphic designer", "operations manager", "sales executive", "customer support"
-    }
     
     # Read and apply structural filters + keyword scoring
     with open(args.candidates, "r", encoding="utf-8") as f:
@@ -254,17 +250,19 @@ def main():
             if abs(yoe - calc_yoe) > 5.0:
                 continue
                 
-            # ── Honeypot Filter 4: Disallowed Current Title with No Tech History ──
+            # ── Honeypot Filter 4: Strict Non-Technical Current Title Exclusion ──
             current_title = cand["profile"].get("current_title", "").lower()
-            if current_title in disallowed_current_titles:
-                has_tech_role = False
-                for job in career:
-                    title = job.get("title", "").lower()
-                    if any(tech in title for tech in ("engineer", "developer", "scientist", "analyst", "architect")):
-                        has_tech_role = True
-                        break
-                if not has_tech_role:
-                    continue
+            non_tech_keywords = {
+                "civil", "mechanical", "electrical", "marketing", "accountant", 
+                "sales", "recruiter", "graphic designer", "operations manager", "customer support"
+            }
+            has_non_tech = any(kw in current_title for kw in non_tech_keywords)
+            if not has_non_tech:
+                title_words = current_title.replace("-", " ").replace("/", " ").split()
+                if "hr" in title_words:
+                    has_non_tech = True
+            if has_non_tech:
+                continue
             
             # Compute fast keyword match score
             kw_score = compute_keyword_score(cand, AI_KEYWORDS)
