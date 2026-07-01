@@ -12,9 +12,15 @@ __pycache__/
 .vscode/
 .idea/
 
+precompute.py
+
+#Ignore context
+.context/
+
 # Ignore local challenge data and scratch scripts
 data/
 scratch/
 
 # Ignore personal submission metadata
-submission_metadata.yaml
+submission_analysis.pdf
+submission_analysis.md

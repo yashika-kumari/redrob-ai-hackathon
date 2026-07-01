@@ -1,6 +1,0 @@
-Phase 1: Foundation Setup (Configure requirements, deploy async FastAPI engine, enforce Pydantic contracts)
-Phase 2: Secure Document Extraction (Deploy PyPDF2 extractors, mitigate path traversal, enforce upload filters)
-Phase 3: Deep AI Embedding Space (Sentence-Transformers local inference setups, in-memory FAISS tracking)
-Phase 4: Candidate Scoring Synthesis (Execute parallel multi-signal similarity math vectors)
-Phase 5: Landbook UI 
-

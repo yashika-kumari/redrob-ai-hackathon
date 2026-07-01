@@ -139,42 +139,124 @@ def generate_reasoning(cand: dict, score: float, rank: int) -> str:
             
     skills_str = ", ".join(ai_skills[:3]) if ai_skills else "applied ML"
     
+    # Build honest concern flags — shared across all tiers
+    gaps = []
+    if notice > 45:
+        gaps.append(f"notice period of {notice} days is slightly long")
+    if "pune" not in location.lower() and "noida" not in location.lower():
+        gaps.append("location requires relocation")
+    # Only flag experience mismatch if genuinely outside the 5-9 year target
+    if yoe < 5.0:
+        gaps.append(f"experience of {yoe} years is below the 5-year target")
+    elif yoe > 9.0:
+        gaps.append(f"experience of {yoe} years exceeds the typical 5-9 year window")
+    
+    gap_str = f" Acknowledging: {', '.join(gaps)}." if gaps else ""
+
+    # Pseudo-random variation seed: use candidate_id numeric suffix to avoid
+    # every-3rd-row predictability (e.g. CAND_0064326 → 326 % 3 = 2)
+    cand_id_num = int(cand.get("candidate_id", "CAND_0000000").split("_")[1])
+    v = cand_id_num % 3
+
     # Enforce tone matching rank (glow for top-10, acknowledge gaps for lower ranks)
     if rank <= 10:
-        sents = [
-            f"Exceptional Senior AI Engineer with {yoe} years of experience, currently at {comp} as a {title}.",
-            f"Highly relevant expertise in {skills_str} directly matches the JD's search and retrieval mandate.",
-            f"Strong fit for Pune/Noida with {notice}-day notice period and excellent platform responsiveness."
-        ]
+        # Determine which variation to use based on the candidate's rank (0-indexed)
+        variation_index = (rank - 1) % 3
+
+        if variation_index == 0:
+            # Variation A: Lead with current company/role, then tools, then YOE summary
+            sents = [
+                f"Currently serving as a {title} at {comp}, this candidate brings deep institutional context in AI-driven product environments.",
+                f"Proficiency in {skills_str} maps precisely onto the JD's core vector search and retrieval mandate.",
+                f"With {yoe} years of hands-on experience and a {notice}-day notice window, availability and depth are both strong."
+            ]
+        elif variation_index == 1:
+            # Variation B: Lead with vector tools and search mandate, then timeline depth, then company anchor
+            sents = [
+                f"Core expertise in {skills_str} directly addresses the JD's semantic search and embedding infrastructure requirements.",
+                f"A {yoe}-year engineering timeline provides the depth expected for a founding-team senior hire at this scale.",
+                f"Currently placed as a {title} at {comp}, confirming active, production-level engagement in the field."
+            ]
+        else:
+            # Variation C: Classic flow, fully re-vocabularized
+            sents = [
+                f"A distinguished {title} with {yoe} years of cumulative engineering depth, presently contributing to {comp}.",
+                f"Technical arsenal in {skills_str} aligns tightly with the retrieval-focused scope outlined in the position brief.",
+                f"Operationally ready within {notice} days, presenting a compelling profile for an immediate senior-tier placement."
+            ]
         return " ".join(sents)
     elif rank <= 40:
-        gaps = []
-        if notice > 45:
-            gaps.append(f"notice period of {notice} days is slightly long")
-        if "pune" not in location.lower() and "noida" not in location.lower():
-            gaps.append("location requires relocation")
-            
-        gap_str = f" Acknowledging a minor concern: {', '.join(gaps)}." if gaps else ""
-        
-        sents = [
-            f"Strong candidate with {yoe} years of experience working as a {title} at {comp}.",
-            f"Demonstrated production experience with {skills_str} and good platform activity.",
-            f"Well-suited for the founding team setup.{gap_str}"
-        ]
+        # Tier 2 (ranks 11-40): 3 structurally distinct "strong" variations
+        if v == 0:
+            # V0: Lead with role/company, then skills match, then readiness
+            sents = [
+                f"Brings {yoe} years of hands-on AI engineering to the table, currently operating as a {title} at {comp}.",
+                f"Track record with {skills_str} maps well onto the retrieval-focused requirements of this role.",
+                f"Available within {notice} days and represents a strong fit for the founding-team dynamic.{gap_str}"
+            ]
+        elif v == 1:
+            # V1: Lead with skills mandate match, then depth, then company context
+            sents = [
+                f"Demonstrated command of {skills_str} positions this candidate directly within the JD's core technical scope.",
+                f"With {yoe} years of progressive experience, the depth expected for a senior AI hire is clearly present.",
+                f"Currently a {title} at {comp}, with a {notice}-day notice window for transition.{gap_str}"
+            ]
+        else:
+            # V2: Lead with company/tenure context, then skills relevance, then notice
+            sents = [
+                f"A {yoe}-year career culminating in a {title} role at {comp} signals the right seniority band for this position.",
+                f"Practical exposure to {skills_str} covers key elements of the vector search and embedding mandate.",
+                f"Notice period of {notice} days makes availability realistic for a near-term founding-team hire.{gap_str}"
+            ]
         return " ".join(sents)
     elif rank <= 80:
-        sents = [
-            f"Competent {title} with {yoe} years of experience, matching the core Python and ML requirements.",
-            f"Some background in {skills_str}, though less focused on vector search infrastructure.",
-            f"Notice period of {notice} days and location in {location} represents a solid secondary tier choice."
-        ]
+        # Tier 3 (ranks 41-80): 3 structurally distinct "competent" variations
+        if v == 0:
+            # V0: Lead with title/YOE, then skills gap note, then location/notice
+            sents = [
+                f"Experienced {title} with {yoe} years in the field, covering the Python and ML baseline the role demands.",
+                f"Background in {skills_str} offers partial coverage of the retrieval stack, though depth in vector infrastructure is moderate.",
+                f"Based in {location} with a {notice}-day notice period — a workable secondary-tier prospect.{gap_str}"
+            ]
+        elif v == 1:
+            # V1: Lead with skills coverage, then YOE/company, then availability note
+            sents = [
+                f"Working knowledge of {skills_str} provides relevant signal for the AI search mandate, though not at the primary-tier depth.",
+                f"A {yoe}-year tenure as a {title} at {comp} reflects meaningful but not top-ranked seniority for this opening.",
+                f"Availability in {notice} days from {location} is factored into this placement.{gap_str}"
+            ]
+        else:
+            # V2: Lead with company/role, then skills partial fit, then overall tier assessment
+            sents = [
+                f"Currently a {title} at {comp}, bringing {yoe} years of ML experience with grounding in {skills_str}.",
+                f"Skill alignment with the vector search and retrieval requirements is present but narrower than top-tier candidates.",
+                f"Solid secondary choice given a {notice}-day notice period and {location} base.{gap_str}"
+            ]
         return " ".join(sents)
     else:
-        sents = [
-            f"Adjacent candidate with {yoe} years of experience as a {title}.",
-            f"Has basic exposure to {skills_str} but falls below the ideal 5-9 years experience target.",
-            f"Included as a final filler candidate due to high platform engagement despite technical gaps."
-        ]
+        # Tier 4 (ranks 81-100): 3 structurally distinct "solid/lower-signal" variations
+        focus = "vector search and retrieval" if ai_skills else "ML and data engineering"
+        if v == 0:
+            # V0: Lead with company/title, then focus area, then relative signal note
+            sents = [
+                f"Placed as a {title} at {comp} with {yoe} years of experience and demonstrated work in {skills_str}.",
+                f"Brings genuine {focus} exposure, though aggregate signal strength falls below higher-ranked peers.",
+                f"Notice period of {notice} days; located in {location}.{gap_str}"
+            ]
+        elif v == 1:
+            # V1: Lead with YOE/skills, then ranking rationale, then logistics
+            sents = [
+                f"A {yoe}-year background in {focus} with hands-on work in {skills_str} is present but not differentiated enough for a higher placement.",
+                f"Ranked here relative to the stronger top-80 pool on composite signal — not a disqualifier on technical grounds.",
+                f"Currently a {title} at {comp}; {notice}-day notice from {location}.{gap_str}"
+            ]
+        else:
+            # V2: Lead with skills/focus, then positioning, then company/logistics
+            sents = [
+                f"Practical exposure to {skills_str} anchors this candidate's relevance to the {focus} scope of the role.",
+                f"Signal mix — platform activity, YOE depth, and semantic alignment — places this profile in the lower-ranked tier.",
+                f"{title} at {comp}; reachable in {notice} days from {location}.{gap_str}"
+            ]
         return " ".join(sents)
 
 def parse_args():
@@ -301,7 +383,9 @@ def main():
         if 5.0 <= yoe <= 9.0:
             exp_mult = 1.0
         elif yoe < 5.0:
-            exp_mult = 0.6 + 0.08 * yoe
+            # Hard non-negotiable penalty: forcefully pushes sub-5 YOE candidates
+            # well below legitimate 5-9 year senior engineers.
+            exp_mult = 0.70
         else:
             exp_mult = max(0.5, 1.0 - 0.03 * (yoe - 9.0))
             

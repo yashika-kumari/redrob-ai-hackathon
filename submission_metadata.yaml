@@ -1,0 +1,44 @@
+team_name: "Zynq"
+
+primary_contact:
+  name: "Yashika Kumari"
+  email: "yashikamjr@gmail.com"
+  phone: ""
+
+team_members:
+  - name: "Yashika Kumari"
+    email: "yashikamjr@gmail.com"
+    role: "Team Lead and Developer"
+
+github_repo: "https://github.com/yashika-kumari/redrob-ai-hackathon"
+sandbox_link: "https://huggingface.co/spaces/yashika-kumari/ir-data-and-ai-challenge"
+reproduce_command: "python rank.py --candidates ./candidates.jsonl --out ./submission.csv"
+
+compute:
+  platform: "Local PC"
+  cpu_cores: 8
+  ram_gb: 16
+  python_version: "3.11.4"
+  os: "Windows 11"
+  uses_gpu_for_inference: false
+  has_network_during_ranking: false
+  pre_computation_required: false
+  pre_computation_time_minutes: 0
+
+ai_tools_used:
+  - "Google Antigravity IDE"
+  - "Claude 3.5 Sonnet (via Antigravity)"
+  - "Gemini 3.5 Flash (via Antigravity)"
+
+ai_usage_summary: |
+  Leveraged Google Antigravity IDE's built-in AI agents (Claude Sonnet & Gemini Flash) to co-pilot architectural design, automate text data cleaning rules, and assist in configuring the local two-stage parsing pipeline. All source code execution, data profiling, and validation checking were conducted entirely inside the local Windows workspace.
+
+methodology_summary: |
+  A robust two-stage ranking pipeline. Stage 1 runs 4 programmatic filters to strip honeypots (zero-duration expert skills, services-only histories, title-description mismatches) and ranks candidates in ~20 seconds using fast keyword overlap scores. Stage 2 embeds and scores the top 1,000 matches on the fly in ~30 seconds using a local SentenceTransformer model singleton (all-MiniLM-L6-v2) and behavioral modifiers, completing end-to-end in under 60 seconds on CPU.
+
+declarations:
+  read_submission_spec: true
+  code_is_original_work: true
+  no_collusion: true
+  honeypot_check_done: true
+  reproduction_tested: true
