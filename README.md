@@ -451,25 +451,23 @@ xychart-beta
 ## ⚡ Compute Constraints
 
 ```mermaid
-gantt
-    title Ranking Pipeline — Wall-Clock Time Budget (5 min limit)
-    dateFormat  s
-    axisFormat  %Ss
+graph TD
+    subgraph TIMELINE["⏱️ Pipeline Execution Timeline (~45 seconds total)"]
+        direction LR
+        S1["<b>Stage 1: Filters</b><br/>Honeypot + structural check<br/>(100K profiles)<br/>⏳ 0s - 5s"]
+        S2["<b>Stage 2: Keywords</b><br/>JD keyword matching<br/>(43K candidates)<br/>⏳ 5s - 10s"]
+        S3["<b>Stage 3: Embedding</b><br/>Batch dense vector encoding<br/>(Top 1,000 pool)<br/>⏳ 10s - 40s"]
+        S4["<b>Stage 4: Scoring</b><br/>Multipliers + sorting<br/>(Final ranking)<br/>⏳ 40s - 42s"]
+        S5["<b>Stage 5: Output</b><br/>Reasoning + write CSV/XLSX<br/>(Top 100 final)<br/>⏳ 42s - 45s"]
 
-    section Stage 1 - Filters
-    Honeypot + structural filters (100K candidates)  : 0, 5s
+        S1 --> S2 --> S3 --> S4 --> S5
+    end
 
-    section Stage 2 - Keyword
-    JD keyword extraction + scoring (43K candidates) : 5s, 10s
-
-    section Stage 3 - Embedding
-    Batch encode top-1000 (batch_size=256)           : 10s, 40s
-
-    section Stage 4 - Scoring
-    Multipliers + sort + clamp                       : 40s, 42s
-
-    section Stage 5 - Output
-    Reasoning generation + CSV write                 : 42s, 45s
+    style S1 fill:#451a03,stroke:#f97316,color:#ffedd5
+    style S2 fill:#1e293b,stroke:#64748b,color:#f8fafc
+    style S3 fill:#172554,stroke:#3b82f6,color:#dbeafe
+    style S4 fill:#311042,stroke:#a855f7,color:#fae8ff
+    style S5 fill:#064e3b,stroke:#10b981,color:#d1fae5
 ```
 
 | Constraint | Limit | Our Usage |
