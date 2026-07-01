@@ -510,7 +510,7 @@ graph TD
 
 <div align="center">
 
-**Built for the [Redrob Intelligent Candidate Discovery & Ranking Challenge](https://huggingface.co/spaces/yashika-kumari/ir-data-and-ai-challenge)**
+**Built for the [India Runs Data and AI Challenge](https://huggingface.co/spaces/yashika-kumari/ir-data-and-ai-challenge)**
 
 *Team Zynq · Yashika Kumari · 2026*
 
