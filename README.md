@@ -1,3 +1,12 @@
+---
+title: IR Data and AI Challenge
+emoji: 🧠
+colorFrom: blue
+colorTo: indigo
+sdk: docker
+pinned: false
+---
+
 # 🤖 India Runs Hackathon
 ### Intelligent Candidate Discovery & Ranking System
 #### *India Runs Data & AI Challenge — Track 1 Submission*
